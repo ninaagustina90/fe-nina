@@ -1,4 +1,4 @@
-const routes = (handler) => [
+const defineAlbumRoutes = (handler) => [
   {
     method: 'POST',
     path: '/albums',
@@ -21,4 +21,4 @@ const routes = (handler) => [
   },
 ];
 
-module.exports = routes;
+module.exports = defineAlbumRoutes;

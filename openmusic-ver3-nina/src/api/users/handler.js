@@ -1,16 +1,16 @@
+const autoBind = require('auto-bind');
 const UsersValidator = require('../../validator/usersValidator');
 
-const autoBind = require('auto-bind').default;
-
 class UsersHandler {
-  constructor(service) {
-    this._service = service;
+  constructor({ usersService, validator = UsersValidator }) {
+    this._service = usersService;
+    this._validator = validator;
 
-    autoBind(this); 
+
   }
 
   async postUserHandler(request, h) {
-    UsersValidator.validateUserPayload(request.payload);
+    this._validator.validateUserPayload(request.payload);
 
     const { username, password, fullname } = request.payload;
     const userId = await this._service.addUser({ username, password, fullname });

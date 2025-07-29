@@ -1,14 +1,16 @@
+const autoBind = require('auto-bind');
 const CollaborationValidator = require('../../validator/collaborationValidator');
-const autoBind = require('auto-bind').default;
 
 class CollaborationsHandler {
-  constructor( service ) {
-    this._service = service,
-      autoBind(this);
+  constructor({ collaborationsService, playlistsService, validator = CollaborationValidator }) {
+    this._collaborationsService = collaborationsService;
+    this._playlistsService = playlistsService;
+    this._validator = validator;
+
   }
 
   async postCollaborationHandler(request, h) {
-    CollaborationValidator.validateCollaborationPayload(request.payload);
+    this._validator.validateCollaborationPayload(request.payload);
 
     const { id: owner } = request.auth.credentials;
     const { playlistId, userId } = request.payload;

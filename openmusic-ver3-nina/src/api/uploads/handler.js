@@ -1,28 +1,24 @@
-const autoBind = require('auto-bind').default;
-
-
+const autoBind = require('auto-bind');
 const UploadsValidator = require('../../validator/uploadValidator');
 
 class UploadsHandler {
-  constructor(service, albumsService) {
-    this._service = service;
+  constructor({ uploadsService, albumsService, validator = UploadsValidator }) {
+    this._service = uploadsService;
     this._albumsService = albumsService;
+    this._validator = validator;
 
-    autoBind(this);
   }
 
   async postAlbumsCoversHandler(request, h) {
     const { cover } = request.payload;
-    const { id } = request.params;
+    const { id: albumId } = request.params;
 
-    UploadsValidator.validateImageHeaders(cover.hapi.headers);
+    this._validator.validateImageHeaders(cover.hapi.headers);
 
     const filename = await this._service.writeFile(cover, cover.hapi);
     const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
 
-    console.log(`ini ${coverUrl}`);
-
-    await this._albumsService.addCoverAlbumById(id, coverUrl);
+    await this._albumsService.addCoverAlbumById(albumId, coverUrl);
 
     return h.response({
       status: 'success',

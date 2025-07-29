@@ -1,44 +1,53 @@
-const AuthValidator = require('../../validator/authValidator');
+const AuthValidator = require("../../validator/authValidator");
 
-const autoBind = require('auto-bind').default;
+const autoBind = require("auto-bind").default;
 
 class AuthenticationsHandler {
-  constructor(service) {
-        this._service = service;
-        autoBind(this);
-  
+  // pas di handler di olah pemakaian nya jadi this._usersService , this._authenticationsService, this._tokenManager
+  constructor(usersService, authenticationsService, tokenManager) {
+    this._usersService = usersService;
+    this._authenticationsService = authenticationsService;
+    this._tokenManager = tokenManager;
+    autoBind(this);
   }
 
   async postAuthenticationHandler(request, h) {
-    AuthValidator.validatePostAuthenticationPayload(request.payload);
+    AuthValidator.validatePostAuthPayload(request.payload);
 
     const { username, password } = request.payload;
-    const id = await this._usersService.verifyUserCredential(username, password);
+
+    const id = await this._usersService.verifyUserCredential(
+      username,
+      password
+    );
 
     const accessToken = this._tokenManager.generateAccessToken({ id });
     const refreshToken = this._tokenManager.generateRefreshToken({ id });
 
     await this._authenticationsService.addRefreshToken(refreshToken);
 
-    return h.response({
-      status: 'success',
-      message: 'Authentication berhasil ditambahkan',
-      data: { accessToken, refreshToken },
-    }).code(201);
+    return h
+      .response({
+        status: "success",
+        message: "Authentication berhasil ditambahkan",
+        data: { accessToken, refreshToken },
+      })
+      .code(201);
   }
 
   async putAuthenticationHandler(request) {
     this._validator.validatePutAuthPayload(request.payload);
 
     const { refreshToken } = request.payload;
-    await this._authService.verifyRefreshToken(refreshToken);
+
+    await this._authenticationsService.verifyRefreshToken(refreshToken);
 
     const { id } = this._tokenManager.verifyRefreshToken(refreshToken);
     const accessToken = this._tokenManager.generateAccessToken({ id });
 
     return {
-      status: 'success',
-      message: 'Access token berhasil diperbarui',
+      status: "success",
+      message: "Access token berhasil diperbarui",
       data: { accessToken },
     };
   }
@@ -47,12 +56,13 @@ class AuthenticationsHandler {
     this._validator.validateDeleteAuthenticationPayload(request.payload);
 
     const { refreshToken } = request.payload;
+
     await this._authenticationsService.verifyRefreshToken(refreshToken);
     await this._authenticationsService.deleteRefreshToken(refreshToken);
 
     return {
-      status: 'success',
-      message: 'Refresh token berhasil dihapus',
+      status: "success",
+      message: "Refresh token berhasil dihapus",
     };
   }
 }

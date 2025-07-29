@@ -6,7 +6,7 @@ class AlbumLikesHandler {
     this._albumsService = albumsService;
 
     this.postLikeHandler = this.postLikeHandler.bind(this);
-    this.getLikesHandler = this.getLikesHandler.bind(this);
+    this.getLikeHandler = this.getLikeHandler.bind(this);
     this.deleteLikeHandler = this.deleteLikeHandler.bind(this);
   }
 
@@ -34,7 +34,7 @@ class AlbumLikesHandler {
     }).code(400);
   }
 
-  async getLikesHandler(request, h) {
+  async getLikeHandler(request, h) {
     const { id } = request.params;
     const albumId = id;
 

@@ -8,37 +8,29 @@ const path = require('path');
 const ClientError = require('./exceptions/ClientError');
 
 // Services
+const CacheService = require('./services/redis/CacheService');
+const CollaborationsService = require('./services/postgres/CollaborationsService');
+const PlaylistsService = require('./services/postgres/PlaylistsService');
 const AlbumsService = require('./services/postgres/AlbumsService');
 const SongsService = require('./services/postgres/SongsService');
 const UsersService = require('./services/postgres/UsersService');
 const AuthenticationsService = require('./services/postgres/AuthenticationsService');
-const PlaylistsService = require('./services/postgres/PlaylistsService');
-const CollaborationsService = require('./services/postgres/CollaborationsService');
 const StorageService = require('./services/storage/StorageService');
-const CacheService = require('./services/redis/CacheService');
+const AlbumsLikesService = require('./services/postgres/AlbumsLikesService');
 
 // Token Manager
 const TokenManager = require('./utils/tokenize');
 
-// Validators
-// const AlbumsValidator = require('./validator/albums');
-// const SongsValidator = require('./validator/songs');
-// const UsersValidator = require('./validator/users');
-// const AuthenticationsValidator = require('./validator/authentications');
-// const PlaylistsValidator = require('./validator/playlists');
-// const CollaborationsValidator = require('./validator/collaborations');
-// const ExportsValidator = require('./validator/exports');
-// const UploadsValidator = require('./validator/uploads');
-
 // Plugins
-const albums = require('./api/albums');
-const songs = require('./api/songs');
-const users = require('./api/users');
-const authentications = require('./api/authentications');
-const playlists = require('./api/playlists');
-const collaborations = require('./api/collaborations');
+const albumsPlugin = require('./api/albums');
+const songsPlugin = require('./api/songs');
+const usersPlugin = require('./api/users');
+const authenticationsPlugin = require('./api/authentications');
+const playlistsPlugin = require('./api/playlists');
+const collaborationsPlugin = require('./api/collaborations');
 const exportsPlugin = require('./api/exports');
-const uploads = require('./api/uploads');
+const uploadsPlugin = require('./api/uploads');
+const albumsLikesPlugin = require('./api/albumsLike');
 
 const init = async () => {
   const cacheService = new CacheService();
@@ -49,10 +41,6 @@ const init = async () => {
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
   const storageService = new StorageService(path.resolve(__dirname, 'uploads'));
-
-  const albumsLikes = require('./api/albumsLike');
-  const AlbumsLikesService = require('./services/postgres/AlbumsLikesService');
-
   const albumsLikesService = new AlbumsLikesService();
 
   const server = Hapi.server({
@@ -65,17 +53,10 @@ const init = async () => {
     },
   });
 
-  // Register plugins
-  await server.register([
-    {
-      plugin: Jwt,
-    },
-    {
-      plugin: Inert,
-    },
-  ]);
+  // Register external plugins
+  await server.register([Jwt, Inert]);
 
-  // Auth Strategy
+  // JWT Auth Strategy
   server.auth.strategy('openmusic_jwt', 'jwt', {
     keys: process.env.ACCESS_TOKEN_KEY,
     verify: {
@@ -86,100 +67,78 @@ const init = async () => {
     },
     validate: (artifacts) => ({
       isValid: true,
-      credentials: {
-        id: artifacts.decoded.payload.id,
-      },
+      credentials: { id: artifacts.decoded.payload.id },
     }),
   });
 
-  // Register your custom plugins
+  // Register custom plugins
   await server.register([
     {
-      plugin: albums,
-      options: {
-        service: albumsService,
-      },
+      plugin: albumsPlugin,
+      options: { service: albumsService },
     },
     {
-      plugin: songs,
-      options: {
-        service: songsService,
-      },
+      plugin: songsPlugin,
+      options: { service: songsService },
     },
     {
-      plugin: users,
-      options: {
-        service: usersService,
-      },
+      plugin: usersPlugin,
+      options: { service: usersService },
     },
     {
-      plugin: authentications,
+      plugin: authenticationsPlugin,
       options: {
-        authenticationsService,
         usersService,
+        authenticationsService,
         tokenManager: TokenManager,
       },
     },
     {
-      plugin: playlists,
-      options: {
-        service: playlistsService,
-        songsService,
-      },
+      plugin: playlistsPlugin,
+      options: { service: playlistsService, songsService },
     },
     {
-      plugin: collaborations,
-      options: {
-        collaborationsService,
-        playlistsService,
-      },
+      plugin: collaborationsPlugin,
+      options: { collaborationsService, playlistsService },
     },
     {
       plugin: exportsPlugin,
-      options: {
-        playlistsService,
-      },
+      options: { playlistsService },
     },
     {
-      plugin: uploads,
-      options: {
-        storageService,
-        albumsService,
-      },
+      plugin: uploadsPlugin,
+      options: { storageService, albumsService },
     },
     {
-      plugin: albumsLikes,
-      options: {
-        service: albumsLikesService,
-        albumsService,
-      },
+      plugin: albumsLikesPlugin,
+      options: { service: albumsLikesService, albumsService },
     },
   ]);
 
-  // Global error handler
+  // Global Error Handler
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
+
     if (response instanceof ClientError) {
-      const newResponse = h.response({
-        status: 'fail',
-        message: response.message,
-      });
-      newResponse.code(response.statusCode);
-      return newResponse;
+      return h
+        .response({
+          status: 'fail',
+          message: response.message,
+        })
+        .code(response.statusCode);
     }
 
     if (!response.isBoom) return h.continue;
 
-    const newResponse = h.response({
-      status: 'error',
-      message: 'Maaf, terjadi kegagalan di server kami.',
-    });
-    newResponse.code(response.output.statusCode);
-    console.error('Server error:', response.message, response.stack);
-    return newResponse;
+    console.error('🔴 Server error:', response.message, response.stack);
+    return h
+      .response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan di server kami.',
+      })
+      .code(response.output.statusCode);
   });
 
-  // Start server
   await server.start();
   console.log(`🚀 Server OpenMusic V3 aktif di ${server.info.uri}`);
 };

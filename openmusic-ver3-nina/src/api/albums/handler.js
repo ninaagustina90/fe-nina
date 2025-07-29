@@ -1,71 +1,97 @@
-const autoBind = require('auto-bind').default;
-const { AlbumValidator } = require("../../validator/albumValidator");
-
+const autoBind = require('auto-bind');
+const { AlbumValidator } = require('../../validator/albumValidator');
 
 class AlbumsHandler {
-  constructor(service, validator) {
+  constructor(service, validator = AlbumValidator) {
     this._service = service;
-    this._validator = validator; // ← wajib ditambahkan
-    autoBind(this);
+    this._validator = validator;
+    
   }
 
+  async postAlbumHandler(request, h) {
+    try {
+      this._validator.validateAlbumPayload(request.payload);
 
-    async postAlbumHandler(request, h) {
-        AlbumValidator.validateAlbumPayload(request.payload);
+      const { name, year } = request.payload;
+      const albumId = await this._service.addAlbum({ name, year });
 
-        const { name, year } = request.payload;
-        const albumId = await this._service.addAlbum({ name, year });
-
-        return h.response({
-            status: 'success',
-            message: 'Album successfully added',
-            data: { albumId },
-        }).code(201);
-
+      return h.response({
+        status: 'success',
+        message: 'Album successfully added',
+        data: { albumId },
+      }).code(201);
+    } catch (error) {
+      return h.response({
+        status: 'fail',
+        message: error.message,
+      }).code(400);
     }
+  }
 
-    async getAlbumByIdHandler(request) {
-        const { id } = request.params;
+  async getAlbumByIdHandler(request, h) {
+    try {
+      const { id } = request.params;
 
-        const [album, songs] = await Promise.all([
-            this._service.getAlbumById(id),
-            this._service.getSongsByAlbumId(id),
-        ]);
+      const [album, songs] = await Promise.all([
+        this._service.getAlbumById(id),
+        this._service.getSongsByAlbumId(id),
+      ]);
 
-        return {
-            status: 'success',
-            data: {
-                album: {
-                    ...album,
-                    songs,
-                },
-            },
-        };
+      return h.response({
+        status: 'success',
+        data: {
+          album: {
+            ...album,
+            songs,
+          },
+        },
+      }).code(200);
+    } catch (error) {
+      return h.response({
+        status: 'fail',
+        message: error.message,
+      }).code(404);
     }
+  }
 
-    async putAlbumByIdHandler(request) {
-        this._validator.validateAlbumPayload(request.payload);
-        const { id } = request.params;
-        const { name, year } = request.payload;
+  async putAlbumByIdHandler(request, h) {
+    try {
+      this._validator.validateAlbumPayload(request.payload);
 
-        await this._service.editAlbumById(id, { name, year });
+      const { id } = request.params;
+      const { name, year } = request.payload;
 
-        return {
-            status: 'success',
-            message: 'Album successfully updated',
-        };
+      await this._service.editAlbumById(id, { name, year });
+
+      return h.response({
+        status: 'success',
+        message: 'Album successfully updated',
+      }).code(200);
+    } catch (error) {
+      return h.response({
+        status: 'fail',
+        message: error.message,
+      }).code(400);
     }
+  }
 
-    async deleteAlbumByIdHandler(request) {
-        const { id } = request.params;
+  async deleteAlbumByIdHandler(request, h) {
+    try {
+      const { id } = request.params;
 
-        await this._service.deleteAlbumById(id);
+      await this._service.deleteAlbumById(id);
 
-        return {
-            status: 'success',
-            message: 'Album successfully deleted',
-        };
+      return h.response({
+        status: 'success',
+        message: 'Album successfully deleted',
+      }).code(200);
+    } catch (error) {
+      return h.response({
+        status: 'fail',
+        message: error.message,
+      }).code(404);
     }
+  }
 }
 
 module.exports = AlbumsHandler;

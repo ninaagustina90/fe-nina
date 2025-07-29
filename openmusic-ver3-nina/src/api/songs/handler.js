@@ -1,17 +1,16 @@
-const autoBind = require('auto-bind').default;
-const  {SongsValidator} = require("../../validator/songValidator"); 
-
+const autoBind = require('auto-bind');
+const { SongsValidator } = require('../../validator/songValidator');
 
 class SongsHandler {
-  constructor(service) {
-    this._service = service;
-  
-    autoBind(this);
+  constructor({ songsService, validator = SongsValidator }) {
+    this._service = songsService;
+    this._validator = validator;
+
+
   }
 
-
   async postSongHandler(request, h) {
-    SongsValidator.validateSongPayload(request.payload);
+    this._validator.validateSongPayload(request.payload);
 
     const {
       title,
@@ -45,11 +44,7 @@ class SongsHandler {
     return h.response({
       status: 'success',
       data: {
-        songs: songs.map(({ id, title, performer }) => ({
-          id,
-          title,
-          performer,
-        })),
+        songs: songs.map(({ id, title, performer }) => ({ id, title, performer })),
       },
     }).code(200);
   }
