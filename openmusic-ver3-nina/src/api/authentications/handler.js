@@ -1,18 +1,16 @@
+const AuthValidator = require('../../validator/authValidator');
+
 const autoBind = require('auto-bind').default;
 
 class AuthenticationsHandler {
-  constructor(authService, authenticationsService, usersService, tokenManager, validator) {
-    this._authService = authService;
-    this._authenticationsService = authenticationsService; // 🔧 Injected explicitly
-    this._usersService = usersService;
-    this._tokenManager = tokenManager;
-    this._validator = validator;
-
+  constructor(service) {
+        this._service = service;
+        autoBind(this);
   
   }
 
   async postAuthenticationHandler(request, h) {
-    this._validator.validatePostAuthenticationPayload(request.payload);
+    AuthValidator.validatePostAuthenticationPayload(request.payload);
 
     const { username, password } = request.payload;
     const id = await this._usersService.verifyUserCredential(username, password);

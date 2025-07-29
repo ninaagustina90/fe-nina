@@ -12,9 +12,9 @@ const SongPayloadSchema = Joi.object({
 
 const SongsValidator = {
   validateSongPayload: (payload) => {
-    const validationResult = SongPayloadSchema.validate(payload);
-    if (validationResult.error) {
-      throw new InvariantError(validationResult.error.message);
+    const { error } = SongPayloadSchema.validate(payload);
+    if (error) {
+      throw new InvariantError(error.message);
     }
   },
 };

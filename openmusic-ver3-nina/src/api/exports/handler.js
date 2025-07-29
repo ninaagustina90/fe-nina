@@ -1,17 +1,19 @@
+const ExportsValidator = require('../../validator/exportValidator');
 const autoBind = require('auto-bind').default;
 
+
 class ExportsHandler {
-  constructor(service, playlistService, producerService, validator) {
+  constructor(service, playlistService, producerService) {
     this._service = service;
     this._playlistsService = playlistService;
-    this._producerService = producerService; // ✅ Inject explicitly
-    this._validator = validator;
+    this._producerService = producerService; 
 
-    
+
+    autoBind(this); 
   }
 
   async postExportPlaylistHandler(request, h) {
-    this._validator.validateExportPlaylistPayload(request.payload);
+    ExportsValidator.validateExportPlaylistPayload(request.payload);
 
     const { id: credentialId } = request.auth.credentials;
     const { playlistId } = request.params;

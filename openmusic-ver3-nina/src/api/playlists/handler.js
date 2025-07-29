@@ -1,15 +1,16 @@
+const PlaylistValidator = require('../../validator/playlistValidator');
+
 const autoBind = require('auto-bind').default;
 
 class PlaylistsHandler {
-  constructor(service, validator) {
+  constructor(service) {
     this._service = service;
-    this._validator = validator;
 
-  
+  autoBind(this); 
   }
 
   async postPlaylistHandler(request, h) {
-    this._validator.validatePlaylistPayload(request.payload);
+    PlaylistValidator.validatePlaylistPayload(request.payload);
 
     const { name } = request.payload;
     const { id: owner } = request.auth.credentials;

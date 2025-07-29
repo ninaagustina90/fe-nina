@@ -1,54 +1,59 @@
-const autoBind = require('auto-bind').default;
 const ClientError = require('../../exceptions/ClientError');
 
-class AlbumsLikeHandler {
-  constructor(service, albumsService, validator) {
+class AlbumLikesHandler {
+  constructor(service, albumsService) {
     this._service = service;
-    this._albumsService = albumsService; // Make sure this service is injected
-    this._validator = validator;
+    this._albumsService = albumsService;
 
-    autoBind(this); // Binds all methods automatically
+    this.postLikeHandler = this.postLikeHandler.bind(this);
+    this.getLikesHandler = this.getLikesHandler.bind(this);
+    this.deleteLikeHandler = this.deleteLikeHandler.bind(this);
   }
 
   async postLikeHandler(request, h) {
-    const { id: albumId } = request.params;
+    const { id } = request.params;
+    const albumId = id;
     const { id: credentialId } = request.auth.credentials;
 
-    // Confirm album exists
     await this._albumsService.getAlbumById(albumId);
 
     const alreadyLiked = await this._service.checkAlreadyLike(credentialId, albumId);
 
     if (!alreadyLiked) {
-      const likeId = await this._service.addLikeToAlbum(credentialId, albumId);
+      const likeId = await this._service.addAlbumLike(credentialId, albumId);
 
       return h.response({
         status: 'success',
-        message: 'Successfully liked the album',
-        data: { likeId },
+        message: `Berhasil melakukan like pada album dengan id: ${likeId}`,
       }).code(201);
     }
 
     return h.response({
       status: 'fail',
-      message: 'You have already liked this album',
+      message: 'Berhasil melakukan unlike',
     }).code(400);
   }
 
   async getLikesHandler(request, h) {
-    const { id: albumId } = request.params;
+    const { id } = request.params;
+    const albumId = id;
+
     const data = await this._service.getLikesCount(albumId);
+    const likes = data.count;
 
     return h.response({
       status: 'success',
-      data: { likes: data.count },
+      data: {
+        likes,
+      },
     })
-    .header('X-Data-Source', data.source || 'cache') // Reflects actual source (cache/database)
-    .code(200);
+      .header('X-Data-Source', data.source)
+      .code(200);
   }
 
   async deleteLikeHandler(request, h) {
-    const { id: albumId } = request.params;
+    const { id } = request.params;
+    const albumId = id;
     const { id: credentialId } = request.auth.credentials;
 
     await this._service.deleteAlbumLike(credentialId, albumId);
@@ -60,4 +65,4 @@ class AlbumsLikeHandler {
   }
 }
 
-module.exports = AlbumsLikeHandler;
+module.exports = AlbumLikesHandler;

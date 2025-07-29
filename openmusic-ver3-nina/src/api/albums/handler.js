@@ -1,30 +1,27 @@
 const autoBind = require('auto-bind').default;
+const { AlbumValidator } = require("../../validator/albumValidator");
+
 
 class AlbumsHandler {
-    constructor(service, validator) {
-        this._service = service;
-        this._validator = validator;
+  constructor(service, validator) {
+    this._service = service;
+    this._validator = validator; // ← wajib ditambahkan
+    autoBind(this);
+  }
 
-    
-    }
 
     async postAlbumHandler(request, h) {
-        try {
-            this._validator.validateAlbumPayload(request.payload);
-            const { name, year } = request.payload;
+        AlbumValidator.validateAlbumPayload(request.payload);
 
-            const albumId = await this._service.addAlbum({ name, year });
+        const { name, year } = request.payload;
+        const albumId = await this._service.addAlbum({ name, year });
 
-            const response = h.response({
-                status: 'success',
-                message: 'Album successfully added',
-                data: { albumId },
-            });
-            response.code(201);
-            return response;
-        } catch (error) {
-            throw error;
-        }
+        return h.response({
+            status: 'success',
+            message: 'Album successfully added',
+            data: { albumId },
+        }).code(201);
+
     }
 
     async getAlbumByIdHandler(request) {

@@ -1,14 +1,17 @@
 const autoBind = require('auto-bind').default;
+const  {SongsValidator} = require("../../validator/songValidator"); 
+
 
 class SongsHandler {
-  constructor(service, validator) {
+  constructor(service) {
     this._service = service;
-    this._validator = validator;
-
+  
+    autoBind(this);
   }
 
+
   async postSongHandler(request, h) {
-    this._validator.validateSongPayload(request.payload);
+    SongsValidator.validateSongPayload(request.payload);
 
     const {
       title,
