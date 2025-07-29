@@ -1,0 +1,33 @@
+{
+  "name": "openmusic-ver3-nina",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "migrate": "node-pg-migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@hapi/hapi": "^21.4.0",
+    "@hapi/inert": "^7.1.0",
+    "@hapi/jwt": "^3.2.0",
+    "amqplib": "^0.10.8",
+    "auto-bind": "^5.0.1",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.1",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^5.1.5",
+    "redis": "^5.6.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.32.0",
+    "migrate": "^2.1.0",
+    "node-pg-migrate": "^8.0.3"
+  }
+}
