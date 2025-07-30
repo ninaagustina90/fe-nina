@@ -1,4 +1,5 @@
 const ClientError = require('../../exceptions/ClientError');
+const autoBind = require('auto-bind').default;
 
 class AlbumLikesHandler {
   constructor(service, albumsService) {
@@ -8,6 +9,8 @@ class AlbumLikesHandler {
     this.postLikeHandler = this.postLikeHandler.bind(this);
     this.getLikeHandler = this.getLikeHandler.bind(this);
     this.deleteLikeHandler = this.deleteLikeHandler.bind(this);
+
+    autoBind(this);
   }
 
   async postLikeHandler(request, h) {

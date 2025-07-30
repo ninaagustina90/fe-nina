@@ -18,6 +18,15 @@ const AuthenticationsService = require('./services/postgres/AuthenticationsServi
 const StorageService = require('./services/storage/StorageService');
 const AlbumsLikesService = require('./services/postgres/AlbumsLikesService');
 
+const AuthValidator = require('./validator/authValidator');
+const UsersValidator = require('./validator/usersValidator');
+const AlbumValidator = require('./validator/albumValidator');
+const SongValidator = require('./validator/songValidator');
+const PlaylistValidator = require('./validator/playlistValidator');
+const PlaylistSongsValidator = require('./validator/playlistSongsValidator');
+const CollaborationsValidator = require('./validator/collaborationValidator');
+const ExportsValidator = require('./validator/exportValidator');
+const UploadsValidator = require('./validator/uploadValidator');
 // Token Manager
 const TokenManager = require('./utils/tokenize');
 
@@ -75,43 +84,46 @@ const init = async () => {
   await server.register([
     {
       plugin: albumsPlugin,
-      options: { service: albumsService },
+      options: { service: albumsService },validator: AlbumValidator,
     },
     {
       plugin: songsPlugin,
-      options: { service: songsService },
+      options: { service: songsService }, validator: SongValidator,
     },
     {
       plugin: usersPlugin,
-      options: { service: usersService },
+      options: { service: usersService },validator: UsersValidator,
     },
     {
       plugin: authenticationsPlugin,
       options: {
         usersService,
         authenticationsService,
-        tokenManager: TokenManager,
+        tokenManager: TokenManager, validator: AuthValidator,
       },
     },
     {
       plugin: playlistsPlugin,
-      options: { service: playlistsService, songsService },
+      options: { service: playlistsService, songsService },validator: {
+        validatePlaylistPayload: PlaylistValidator.validatePlaylistPayload,
+        validatePlaylistSongPayload: PlaylistSongsValidator.validatePlaylistSongPayload,
     },
+  },
     {
       plugin: collaborationsPlugin,
-      options: { collaborationsService, playlistsService },
+      options: { collaborationsService, playlistsService }, validator: CollaborationsValidator,
     },
     {
       plugin: exportsPlugin,
-      options: { playlistsService },
+      options: { playlistsService }, playlistsService: PlaylistsService, validator: ExportsValidator,
     },
     {
       plugin: uploadsPlugin,
-      options: { storageService, albumsService },
+      options: { storageService, albumsService }, validator: UploadsValidator, service: storageService,
     },
     {
       plugin: albumsLikesPlugin,
-      options: { service: albumsLikesService, albumsService },
+      options: { service: albumsLikesService, albumsService }, service: albumsLikesService,
     },
   ]);
 

@@ -1,4 +1,4 @@
-const autoBind = require('auto-bind');
+const autoBind = require('auto-bind').default;
 const ExportsValidator = require('../../validator/exportValidator');
 
 class ExportsHandler {
@@ -7,6 +7,8 @@ class ExportsHandler {
     this._playlistsService = playlistsService;
     this._producerService = producerService;
     this._validator = validator;
+
+    autoBind(this);
   }
 
   async postExportPlaylistHandler(request, h) {

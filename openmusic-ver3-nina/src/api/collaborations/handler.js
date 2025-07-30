@@ -1,4 +1,4 @@
-const autoBind = require('auto-bind');
+const autoBind = require('auto-bind').default;
 const CollaborationValidator = require('../../validator/collaborationValidator');
 
 class CollaborationsHandler {
@@ -7,6 +7,7 @@ class CollaborationsHandler {
     this._playlistsService = playlistsService;
     this._validator = validator;
 
+    autoBind(this);
   }
 
   async postCollaborationHandler(request, h) {

@@ -1,4 +1,4 @@
-const autoBind = require('auto-bind');
+const autoBind = require('auto-bind').default;
 const { SongsValidator } = require('../../validator/songValidator');
 
 class SongsHandler {
@@ -6,7 +6,7 @@ class SongsHandler {
     this._service = songsService;
     this._validator = validator;
 
-
+    autoBind(this);
   }
 
   async postSongHandler(request, h) {

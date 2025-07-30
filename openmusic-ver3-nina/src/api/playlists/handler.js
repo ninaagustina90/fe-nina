@@ -1,4 +1,4 @@
-const autoBind = require('auto-bind');
+const autoBind = require('auto-bind').default;
 const PlaylistValidator = require('../../validator/playlistValidator');
 
 class PlaylistsHandler {
@@ -6,7 +6,7 @@ class PlaylistsHandler {
     this._service = playlistsService;
     this._validator = validator;
 
-
+    autoBind(this);
   }
 
 

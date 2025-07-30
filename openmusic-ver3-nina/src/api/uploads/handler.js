@@ -1,4 +1,4 @@
-const autoBind = require('auto-bind');
+const autoBind = require('auto-bind').default;
 const UploadsValidator = require('../../validator/uploadValidator');
 
 class UploadsHandler {
@@ -6,6 +6,8 @@ class UploadsHandler {
     this._service = uploadsService;
     this._albumsService = albumsService;
     this._validator = validator;
+
+    autoBind(this);
 
   }
 
