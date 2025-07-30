@@ -88,11 +88,11 @@ const init = async () => {
     },
     {
       plugin: songsPlugin,
-      options: { service: songsService }, validator: SongValidator,
+      options: { songsService: songsService }, validator: SongValidator,
     },
     {
       plugin: usersPlugin,
-      options: { service: usersService },validator: UsersValidator,
+      options: { usersService: usersService, validator: UsersValidator, },
     },
     {
       plugin: authenticationsPlugin,
